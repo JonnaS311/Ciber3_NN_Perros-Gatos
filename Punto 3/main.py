@@ -74,10 +74,10 @@ pred = scaler_out.inverse_transform(pred)
 real = y[len(X_train):len(X_train)+len(pred)]
 
 # ---------------------------
-# Evaluación del Modelo (Solo 10 segundos)
+# Evaluación del Modelo (Solo n segundos)
 # ---------------------------
 
-# 1. Calcular cuántos pasos (puntos) son 10 segundos
+# 1. Calcular cuántos pasos (puntos) son n segundos
 dt = t[1] - t[0]  # Tamaño del paso de tiempo de la simulación original
 seconds_to_evaluate = 4.0
 n_steps_2s = int(seconds_to_evaluate / dt)
@@ -89,13 +89,13 @@ n_steps_2s = min(n_steps_2s, len(real))
 real_2s = real[:n_steps_2s]
 pred_2s = pred[:n_steps_2s]
 
-# 3. Calcular Error Absoluto Medio (MAE) para 2 segundos
+# 3. Calcular Error Absoluto Medio (MAE) para n segundos
 mae_total_2s = mean_absolute_error(real_2s, pred_2s)
 mae_x_2s = mean_absolute_error(real_2s[:, 0], pred_2s[:, 0])
 mae_y_2s = mean_absolute_error(real_2s[:, 1], pred_2s[:, 1])
 mae_z_2s = mean_absolute_error(real_2s[:, 2], pred_2s[:, 2])
 
-# 4. Calcular Error Cuadrático Medio (MSE) para 2 segundos
+# 4. Calcular Error Cuadrático Medio (MSE) para n segundos
 mse_total_2s = mean_squared_error(real_2s, pred_2s)
 mse_x_2s = mean_squared_error(real_2s[:, 0], pred_2s[:, 0])
 mse_y_2s = mean_squared_error(real_2s[:, 1], pred_2s[:, 1])
