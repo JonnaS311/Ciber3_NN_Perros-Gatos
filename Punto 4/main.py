@@ -6,29 +6,20 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
-# ======================================================================
-# 4. SCRIPT ANFIS (Versión NARX 2.0) - Seno Completo
-# ======================================================================
-
-# --- 1. Generar datos AMBIGUOS (Onda completa) ---
+# --- 1. Generar datos AMBIGUOS ---
 t = np.linspace(0, 1, 1000)
-x_orig = np.abs((t * 2) % 2 - 1) # (1 -> 0 -> 1)
-y_orig = np.sin(2 * np.pi * t) # (0 -> 1 -> 0 -> -1 -> 0)
+x_orig = np.abs((t * 2) % 2 - 1)
+y_orig = np.sin(2 * np.pi * t) 
 
-# --- 2. Estructurar Datos (NARX - ¡CORREGIDO!) ---
-# Modelo: y(t) = f( x(t), y(t-1) )
+# --- 2. Estructurar Datos ---
 print("--- Estructurando datos (NARX y(t) = f(x(t), y(t-1))) ---")
 
 df = pd.DataFrame({'x': x_orig, 'y': y_orig})
-# Creamos la columna con el dato pasado (la "memoria" correcta)
-df['y_t_minus_1'] = df['y'].shift(1) # <-- ¡CAMBIO 1!
+df['y_t_minus_1'] = df['y'].shift(1)
 
-# Eliminamos la primera fila que ahora tiene NaN
 df = df.dropna()
 
-# Extraemos los datos para ANFIS
-# X ahora tiene 2 columnas (2 entradas)
-X_data = df[['x', 'y_t_minus_1']].values # <-- ¡CAMBIO 2!
+X_data = df[['x', 'y_t_minus_1']].values
 Y_data = df['y'].values.reshape(-1, 1)
 
 # --- 3. Normalización ---
@@ -82,8 +73,6 @@ for n_mf in mf_per_input_list:
 print("--- Entrenamiento completado ---")
 
 # --- 8. Métricas y Reporte (Basado en el Test Set) ---
-print("\n========= REPORTE DE REQUISITOS (SOBRE CONJUNTO DE PRUEBA) ==========")
-
 for n_mf in mf_per_input_list:
     Y_test_orig = results[n_mf]['Y_test_orig']
     Y_pred_orig_test = results[n_mf]['Y_pred_orig_test']
@@ -105,7 +94,7 @@ for n_mf in mf_per_input_list:
     else:
         print("  ESTADO: NO CUMPLE REQUERIMIENTOS")
 
-# --- 9. GRÁFICA DE SIMULACIÓN COMPLETA (¡Lo importante!) ---
+# --- 9. GRÁFICA DE SIMULACIÓN COMPLETA ---
 print("\n--- Generando gráficas de la simulación completa ---")
 
 plt.figure(figsize=(12, 7))
@@ -127,13 +116,12 @@ plt.show()
 # --- 10. Graficar Funciones de Pertenencia (Manual) ---
 print("\n--- Graficando Funciones de Pertenencia ---")
 
-x_plot = np.linspace(0, 1, 100) # Rango normalizado
+x_plot = np.linspace(0, 1, 100)
 
 for n_mf in mf_per_input_list:
     model = results[n_mf]['model']
 
     try:
-        # Gráfica para Entrada 1: x(t)
         mf_params_e1 = model.mf_parms[0]
         plt.figure(figsize=(10, 4))
         for idx, params in enumerate(mf_params_e1):
@@ -144,7 +132,6 @@ for n_mf in mf_per_input_list:
         plt.grid(True)
         plt.show()
 
-        # Gráfica para Entrada 2: y(t-1)
         mf_params_e2 = model.mf_parms[1]
         plt.figure(figsize=(10, 4))
         for idx, params in enumerate(mf_params_e2):
