@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 # ---------------------------
 # Sistema de Rössler
@@ -18,7 +19,7 @@ def rossler(state, t, a=0.2, b=0.2, c=5.7):
 
 
 # Simulación real
-t = np.linspace(0, 200, 5000)
+t = np.linspace(0, 200, 3000)
 state0 = [0.1, 0.1, 0.1]
 states = odeint(rossler, state0, t)
 
@@ -48,9 +49,9 @@ net = MLPRegressor(
     hidden_layer_sizes=(65, 65, 65, 65),
     activation='relu',
     solver='adam',
-    learning_rate_init=0.00001,
-    max_iter=1500,
-    tol=1e-7,
+    learning_rate_init=0.000015,
+    max_iter=5000,
+    tol=1e-9,
     n_iter_no_change=100,
     random_state=1,
     verbose=True
@@ -71,6 +72,50 @@ for _ in range(len(X_test)):
 
 pred = scaler_out.inverse_transform(pred)
 real = y[len(X_train):len(X_train)+len(pred)]
+
+# ---------------------------
+# Evaluación del Modelo (Solo 10 segundos)
+# ---------------------------
+
+# 1. Calcular cuántos pasos (puntos) son 10 segundos
+dt = t[1] - t[0]  # Tamaño del paso de tiempo de la simulación original
+seconds_to_evaluate = 4.0
+n_steps_2s = int(seconds_to_evaluate / dt)
+
+# Asegurarse de no pedir más puntos de los que hay en el set de prueba
+n_steps_2s = min(n_steps_2s, len(real))
+
+# 2. Cortar los arrays a 2 segundos
+real_2s = real[:n_steps_2s]
+pred_2s = pred[:n_steps_2s]
+
+# 3. Calcular Error Absoluto Medio (MAE) para 2 segundos
+mae_total_2s = mean_absolute_error(real_2s, pred_2s)
+mae_x_2s = mean_absolute_error(real_2s[:, 0], pred_2s[:, 0])
+mae_y_2s = mean_absolute_error(real_2s[:, 1], pred_2s[:, 1])
+mae_z_2s = mean_absolute_error(real_2s[:, 2], pred_2s[:, 2])
+
+# 4. Calcular Error Cuadrático Medio (MSE) para 2 segundos
+mse_total_2s = mean_squared_error(real_2s, pred_2s)
+mse_x_2s = mean_squared_error(real_2s[:, 0], pred_2s[:, 0])
+mse_y_2s = mean_squared_error(real_2s[:, 1], pred_2s[:, 1])
+mse_z_2s = mean_squared_error(real_2s[:, 2], pred_2s[:, 2])
+
+
+# --- Imprimir los resultados en la consola ---
+print("\n" + "="*45)
+print(f"  EVALUACIÓN DEL MODELO (Primeros {seconds_to_evaluate} Segundos)")
+print("="*45)
+print(f"\nError Absoluto Medio (MAE) Total: {(mae_total_2s*100):.6f}%")
+print(f"  MAE en x: {mae_x_2s:.6f}")
+print(f"  MAE en y: {mae_y_2s:.6f}")
+print(f"  MAE en z: {mae_z_2s:.6f}")
+print("\n")
+print(f"Error Cuadrático Medio (MSE) Total: {(mse_total_2s*100):.6f}%")
+print(f"  MSE en x: {mse_x_2s:.6f}")
+print(f"  MSE en y: {mse_y_2s:.6f}")
+print(f"  MSE en z: {mse_z_2s:.6f}")
+print("="*45 + "\n")
 
 # ---------------------------
 # Gráfica
